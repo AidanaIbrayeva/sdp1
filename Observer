@@ -1,0 +1,64 @@
+package main
+
+import (
+ "fmt"
+ "sync"
+)
+
+type Observer interface {
+ Update(message string)
+}
+
+type Subscriber struct {
+ name string
+}
+
+func NewSubscriber(name string) *Subscriber {
+ return &Subscriber{name}
+}
+
+func (s *Subscriber) Update(message string) {
+ fmt.Printf("[%s] Получено сообщение: %s\n", s.name, message)
+}
+
+type Subject interface {
+ Register(observer Observer)
+ Deregister(observer Observer)
+ NotifyObservers(message string)
+}
+
+type Publisher struct {
+ observers sync.Map
+}
+
+func (p *Publisher) Register(observer Observer) {
+ p.observers.Store(observer, struct{}{})
+}
+
+func (p *Publisher) Deregister(observer Observer) {
+ p.observers.Delete(observer)
+}
+
+func (p *Publisher) NotifyObservers(message string) {
+ p.observers.Range(func(key, value interface{}) bool {
+  observer := key.(Observer)
+  observer.Update(message)
+  return true
+ })
+}
+
+func main() {
+ publisher := &Publisher{}
+
+ subscriber1 := NewSubscriber("Подписчик 1")
+ subscriber2 := NewSubscriber("Подписчик 2")
+
+ publisher.Register(subscriber1)
+ publisher.Register(subscriber2)
+
+ publisher.NotifyObservers("Новое сообщение для подписчиков")
+
+ publisher.Deregister(subscriber1)
+
+ publisher.NotifyObservers("Ещё одно сообщение для подписчиков")
+}
