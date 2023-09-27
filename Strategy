@@ -1,0 +1,39 @@
+package main
+
+import (
+	"fmt"
+)
+
+type PaymentStrategy interface {
+	Pay(amount float64)
+}
+
+type CreditCardPayment struct{}
+
+func (c *CreditCardPayment) Pay(amount float64) {
+	fmt.Printf("Оплачено с помощью кредитной карты: %.2f\n", amount)
+}
+
+type PayPalPayment struct{}
+
+func (p *PayPalPayment) Pay(amount float64) {
+	fmt.Printf("Оплачено с помощью PayPal: %.2f\n", amount)
+}
+
+type ShoppingCart struct {
+	paymentStrategy PaymentStrategy
+}
+
+func (sc *ShoppingCart) Checkout(amount float64) {
+	sc.paymentStrategy.Pay(amount)
+}
+
+func main() {
+	shoppingCart := &ShoppingCart{}
+
+	shoppingCart.paymentStrategy = &CreditCardPayment{}
+	shoppingCart.Checkout(100.0)
+
+	shoppingCart.paymentStrategy = &PayPalPayment{}
+	shoppingCart.Checkout(50.0)
+}
